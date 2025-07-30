@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import io
 from utils.xml_parser import processar_xmls
-from utils.processamento import aplicar_filtros
+from utils.processamento import aplicar_filtros, aplicar_calculo_imposto
 
 # --- Definindo campos disponíveis e filtros ---
 CAMPOS = [
@@ -20,7 +20,7 @@ uploaded_files = st.file_uploader(
     "Selecione os arquivos XML para processar", type=["xml"], accept_multiple_files=True
 )
 
-# --- Seleção dos campos (checkboxes individuais, sem “selecionar todos”) ---
+# --- Seleção dos campos (checkboxes individuais) ---
 st.subheader("Campos a importar")
 colunas = st.columns(5)
 checkbox_states = {}
@@ -36,7 +36,7 @@ with col1:
 with col2:
     excluir_ufini_fora_mg = st.checkbox("Excluir UFIni fora de 'MG'", key="excluir_ufini")
 
-# --- Checkbox: Exibir debug dos XMLs na tela (apenas para visualizar, relatório sempre gerado) ---
+# --- Checkbox: Exibir debug dos XMLs na tela (rolável) ---
 exibir_debug = st.checkbox(
     "Exibir debug dos XMLs na tela (apenas 3 primeiros, campo rolável)", key="exibir_debug"
 )
@@ -104,6 +104,7 @@ if st.button("Iniciar Processamento"):
         # Montando DataFrame final
         df = pd.DataFrame(resultados)
         df = aplicar_filtros(df, excluir_mg, excluir_ufini_fora_mg)
+        df = aplicar_calculo_imposto(df)  # <--- Adiciona coluna ICMS Calculado
 
         st.session_state["df"] = df  # <--- Salva na sessão!
         # Relatório de debug, se ativado
